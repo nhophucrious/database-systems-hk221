@@ -1,0 +1,219 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Patient {% endblock title %}
+
+{% block content %}
+
+  <div class="header bg-primary pb-6">
+    <div class="container-fluid">
+      <div class="header-body">
+        <div class="row align-items-center py-4">
+          <div class="col-lg-6 col-7">
+            <h6 class="h2 text-white d-inline-block mb-0">Patients</h6>
+            <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+              <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+                <li class="breadcrumb-item"><a href="#">Tables</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Patient</li>
+              </ol>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Page content -->
+  <div class="container-fluid mt--6">
+    <div class="row">
+      <div class="col-6">
+        <div class="card">
+          <!-- Card header -->
+          <div class="card-header border-0">
+            <h1 class="mb-0">Patient Overview</h1>
+          </div>
+          <!-- Light table -->
+          <div class="table-responsive">
+            <table id="patient-data-table" class="table align-items-center table-flush table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="sort" data-sort="name">ID</th>
+                  <th scope="col" class="sort" data-sort="budget">First Name</th>
+                  <th scope="col" class="sort" data-sort="status">Last Name</th>
+                  <th scope="col" class="sort" data-sort="completion">Gender</th>
+                  <th scope="col" class="sort" data-sort="completion">National ID</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <!-- Card footer -->
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card" id="side-card">
+          <!-- Card header -->
+          <!-- SAMPLE CARD START -->
+          <div class="card-body border-0" id="sample-patient-card">
+            <h1 class="mb-0">Patient Details</h1>
+            <h3 class="card-subtitle my-2 text-muted">Select a patient to view their detailed information (phone, comorbidities...)</h3>
+            <img src="/static/assets/img/brand/blue_square.png" class="img-fluid" alt="">
+            <!-- SAMPLE CARD END -->
+          </div>
+          <div id="patient-details" class="card-body border-0" style="display: none">
+            <h1 class="mb-0">Patient Details</h1>
+            <h3 class="card-subtitle my-2 text-muted">The patient's details are as follows:</h3>
+            <h4 id="patient-id"></h4>
+            <h4 id="patient-name"></h4>
+            <h4 id="patient-gender"></h4>
+            <h4 id="patient-national-id"></h4>
+            <h4 id="patient-phone"></h4>
+            <h4 id="patient-comorbidity" style="color: orange"></h4>
+            <input type="button" class="btn btn-primary" onclick="someFunc()" value="View Full Report">
+          </div>
+        </div>
+        <div class="card" id="test-card">
+          <div id="patient-testing-details" class="card-body border-0" style="display: block">
+            <h2 class="mb-0">Patient Testings</h2>
+            <hr>
+            <div class="table-responsive">
+              <table id="patient-testing-table" class="table align-items-center table-flush table-hover">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="sort" data-sort="date">Test Date</th>
+                    <th scope="col" class="sort" data-sort="budget">Quick test</th>
+                    <th scope="col" class="sort" data-sort="status">PCR</th>
+                    <th scope="col" class="sort" data-sort="status">Respiratory Rate</th>
+                    <th scope="col" class="sort" data-sort="status">SPO2</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        
+      </div>
+      
+      
+    </div>
+    {% include "includes/footer.html" %}
+
+  </div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+<script>
+    const someFunc = () => {
+      console.log("jeje");
+      document.getElementById('patient-testing-details').setAttribute("style", "display: block");
+    }
+    function getAdditionalDetails(myData, route) {
+      const data = myData;
+      return fetch(route, {
+        method: "POST",
+        headers: {
+          "content-type": "text/plain; charset=UTF-8",
+        },
+        body: data,
+      }).then(function (response) {
+        return response.json();
+      });
+    }
+    $(document).ready(function () {
+      var tablePatient = $("#patient-data-table").DataTable({        
+        ajax: "api/patient_data",
+        serverSide: true,
+        columns: [
+          { data: "id", orderable: false, width: "10%"},
+          { data: "first_name", orderable: false},
+          { data: "last_name", orderable: false},
+          { data: "gender", orderable: false},
+          { data: "id_number", orderable: false}
+        ],
+        "order":[],
+        language:{
+          paginate:{
+            previous: "⬅️",
+            next: "➡️"
+          }
+        }
+      });
+      $("#patient-data-table tbody").on("click", "tr", function(){
+        const row = tablePatient.row(this).data();
+        const myJSON = JSON.stringify(row);
+        console.log(myJSON);
+        const myObj = JSON.parse(myJSON);
+        updateSide(myObj);
+      });
+    });
+    const updateSide = (myObj) => {
+      var phoneNumbers, comorbidity;
+      getAdditionalDetails(myObj["id"], "/api/patient_detailed_data").then(function (response) {
+        //console.log(response)
+        let myAdditionalInfo = JSON.parse(JSON.stringify(response))
+        let phoneFromJSON = myAdditionalInfo["patientPhone"];
+        let comorbidityFromJSON = myAdditionalInfo["comorbidity"]
+        //console.log(myAdditionalInfo)
+        phoneNumbers = phoneFromJSON;
+        comorbidity = comorbidityFromJSON;
+        //console.log(phoneNumbers)
+        // hide sample card
+        document.getElementById('sample-patient-card').setAttribute("style", "display: none");
+        // show personnel info
+        document.getElementById('patient-details').setAttribute("style", "display: block")
+        // update card
+        document.getElementById('patient-id').innerHTML = "Patient ID:" + "&nbsp" + myObj["id"];
+        document.getElementById('patient-name').innerHTML = "Full name:" + "&nbsp"+ myObj["first_name"] + "&nbsp" + myObj["last_name"];
+        document.getElementById('patient-gender').innerHTML = "Gender:" + "&nbsp" + (myObj["gender"]=="F" ? "Female" : "Male");
+        document.getElementById('patient-phone').innerHTML = "Phone number(s):" + "&nbsp" + phoneNumbers;
+        document.getElementById('patient-comorbidity').innerHTML = "Comorbidity:" + "&nbsp" + (comorbidity===null? "None" : comorbidity);
+      });
+      getAdditionalDetails(myObj["id"], "api/patient_testing_data").then(function(response){
+        console.log(response);
+        let patientTestingInfo = JSON.parse(JSON.stringify(response));
+        if ($.fn.dataTable.isDataTable('#patient-testing-table')) {
+          $('#patient-testing-table').DataTable().destroy();
+        }
+        var patientTesting = $("#patient-testing-table").DataTable({
+          data: patientTestingInfo["data"],
+          destroy: true,
+          searching: false,
+          sDom: 'lrtip',
+          paging: false,
+          columns: [
+            { data: "test_date", orderable: false, width: "5%" },
+            { data: "quicktest_res", orderable: false, width: "5%"},
+            { data: "pcr_res", orderable: false, width: "5%"},
+            { data: "respiratory_rate", orderable: false, width: "5%"},
+            { data: "spo2", orderable: false, width: "5%"},          
+          ],
+          "order":[],
+          language:{
+            paginate:{
+              previous: "⬅️",
+              next: "➡️"
+            }
+          }
+        });
+      });
+    }
+</script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"
+    ></script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.js"
+    ></script>
+{% endblock javascripts %}

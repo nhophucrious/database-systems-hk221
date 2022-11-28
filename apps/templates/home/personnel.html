@@ -1,0 +1,139 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Personnel {% endblock title %}
+
+{% block content %}
+
+  <div class="header bg-primary pb-6">
+    <div class="container-fluid">
+      <div class="header-body">
+        <div class="row align-items-center py-4">
+          <div class="col-lg-6 col-7">
+            <h6 class="h2 text-white d-inline-block mb-0">Personnel</h6>
+            <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+              <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+                <li class="breadcrumb-item"><a href="#">Tables</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Personnel</li>
+              </ol>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Page content -->
+  <div class="container-fluid mt--6">
+    <div class="row">
+      <div class="col-8">
+        <div class="card">
+          <!-- Card header -->
+          <div class="card-header border-0">
+            <h3 class="mb-0">Personnel Overview</h3>
+          </div>
+          <!-- Light table -->
+          <div class="table-responsive">
+            <table id="personnel_data" class="table align-items-center table-flush table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="sort" data-sort="name">ID</th>
+                  <th scope="col" class="sort" data-sort="budget">First Name</th>
+                  <th scope="col" class="sort" data-sort="status">Last Name</th>
+                  <th scope="col" class="sort" data-sort="completion">Gender</th>
+                  <th scope="col" class="sort" data-sort="completion">Phone Number</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <!-- Card footer -->
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card" id="side-card">
+          <!-- Card header -->
+          <!-- SAMPLE CARD START -->
+          <div class="card-body border-0" id="sample-personnel-card">
+            <h1 class="mb-0">Personnel Details</h1>
+            <h3 class="card-subtitle my-2 text-muted">Select a personnel to view their detailed information</h3>
+            <img src="/static/assets/img/brand/blue_square.png" class="img-fluid" alt="">
+            <!-- SAMPLE CARD END -->
+          </div>
+          <div id="personnel-details" class="card-body border-0" style="display: none">
+            <h1 class="mb-0">Personnel Details</h1>
+            <h3 class="card-subtitle my-2 text-muted">Select a personnel to view their detailed information</h3>
+            <h4 id="personnel-id"></h4>
+            <h4 id="personnel-name"></h4>
+            <h4 id="personnel-gender"></h4>
+            <h4 id="personnel-phone"></h4>
+          </div>  
+        </div>
+        
+        
+      </div>
+    </div>
+
+    {% include "includes/footer.html" %}
+
+  </div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+<script>
+    $(document).ready(function () {
+      var table = $("#personnel_data").DataTable({
+        ajax: "api/personnel_data",
+        serverSide: true,
+        columns: [
+          { data: "id", orderable: false, width: "10%"},
+          { data: "first_name", orderable: false},
+          { data: "last_name", orderable: false},
+          { data: "gender", orderable: false },
+          { data: "phone_no", orderable: false}
+        ],
+        "order":[],
+        language:{
+          paginate:{
+            previous: "⬅️",
+            next: "➡️"
+          }
+        }
+      });
+      $("#personnel_data tbody").on("click", "tr", function(){
+        const row = table.row(this).data();
+        const myJSON = JSON.stringify(row);
+        console.log(myJSON);
+        const myObj = JSON.parse(myJSON);
+        updateSide(myObj);
+      });
+    });
+    let MYOBJ = undefined
+    const UPDATE_GLOBAL_MYOBJ = function(myObj){
+      MYOBJ = myObj;
+    }
+    const updateSide = (myObj) => {
+      // hide sample card
+      document.getElementById('sample-personnel-card').setAttribute("style", "display: none");
+      // show personnel info
+      document.getElementById('personnel-details').setAttribute("style", "display: block")
+      // update card
+      document.getElementById('personnel-id').innerHTML = "Personnel ID:" + "&nbsp" + myObj["id"];
+      document.getElementById('personnel-name').innerHTML = "Full name:" + "&nbsp"+ myObj["first_name"] + "&nbsp" + myObj["last_name"];
+      document.getElementById('personnel-gender').innerHTML = "Gender:" + "&nbsp" + (myObj["gender"]=="F" ? "Female" : "Male");
+      document.getElementById('personnel-phone').innerHTML = "Phone number(s):" + "&nbsp" + myObj["phone_no"];
+    }
+</script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"
+    ></script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.js"
+    ></script>
+{% endblock javascripts %}

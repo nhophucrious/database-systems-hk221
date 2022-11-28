@@ -1,0 +1,179 @@
+{% extends 'layouts/base.html' %} {% block title %} Medication {% endblock title
+%} {% block content %}
+
+<div class="header bg-primary pb-6">
+  <div class="container-fluid">
+    <div class="header-body">
+      <div class="row align-items-center py-4">
+        <div class="col-lg-6 col-7">
+          <h6 class="h2 text-white d-inline-block mb-0">Medication</h6>
+          <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+            <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+              <li class="breadcrumb-item">
+                <a href="/"><i class="fas fa-home"></i></a>
+              </li>
+              <li class="breadcrumb-item"><a href="#">Tables</a></li>
+              <li class="breadcrumb-item active" aria-current="page">
+                Medication
+              </li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page content -->
+<div class="container-fluid mt--6">
+  <div class="row">
+    <div class="col-8">
+      <div class="card">
+        <!-- Card header -->
+        <div class="card-header border-0">
+          <h3 class="mb-0">Medication Overview</h3>
+        </div>
+        <!-- Light table -->
+        <div class="table-responsive">
+          <table
+            id="medication-data-table"
+            class="table align-items-center table-flush table-hover"
+          >
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="sort" data-sort="name">ID</th>
+                <th scope="col" class="sort" data-sort="budget">
+                  Medication Name
+                </th>
+                <th scope="col" class="sort" data-sort="status">
+                  Medication Price
+                </th>
+                <th scope="col" class="sort" data-sort="completion">
+                  Expiry Date
+                </th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <!-- Card footer -->
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card" id="side-card">
+        <!-- Card header -->
+        <!-- SAMPLE CARD START -->
+        <div class="card-body border-0" id="sample-med-card">
+          <h1 class="mb-0">Medication Details</h1>
+          <h3 class="card-subtitle my-2 text-muted">
+            Select an item to view its detailed information
+          </h3>
+          <img
+            src="/static/assets/img/brand/blue_square.png"
+            class="img-fluid"
+            alt=""
+          />
+          <!-- SAMPLE CARD END -->
+        </div>
+        <div id="med-details" class="card-body border-0" style="display: none">
+          <h1 class="mb-0" id="med-name-side"></h1>
+          <h3 class="card-subtitle my-2 text-muted" id="med-id-side"></h3>
+          <h4 id="med-price-side"></h4>
+          <h4 id="med-exp-side"></h4>
+          <h4 id="med-effect-side"></h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+<script>
+  let medEffect = undefined;
+  function callAPI(myData) {
+    const data = myData;
+    return fetch("/api/medication_detailed_data", {
+      method: "POST",
+      headers: {
+        "content-type": "text/plain; charset=UTF-8",
+      },
+      body: data,
+    }).then(function (response) {
+      return response.json();
+    });
+  }
+  $(document).ready(function () {
+    var table = $("#medication-data-table").DataTable({
+      ajax: "api/medication_data",
+      serverSide: true,
+      columns: [
+        { data: "id", orderable: false, width: "10%" },
+        { data: "med_name", orderable: false, width: "30%" },
+        { data: "price", orderable: false, width: "20%" },
+        { data: "exp_date", orderable: false, width: "20%" },
+      ],
+      order: [],
+      language: {
+        paginate: {
+          previous: "⬅️",
+          next: "➡️",
+        },
+      },
+    });
+    $("#medication-data-table tbody").on("click", "tr", function () {
+      const row = table.row(this).data();
+      const myJSON = JSON.stringify(row);
+      console.log(myJSON);
+      const myObj = JSON.parse(myJSON);
+      updateSide(myObj);
+    });
+  });
+  let MYOBJ = undefined;
+  const UPDATE_GLOBAL_MYOBJ = function (myObj) {
+    MYOBJ = myObj;
+  };
+  const updateSide = (myObj) => {
+    var effectString;
+    callAPI(myObj["id"]).then(function (response) {
+      console.log(response);
+      let myEffect = JSON.parse(JSON.stringify(response));
+      let returnEffect = myEffect["effect"];
+      console.log(returnEffect);
+      effectString = returnEffect;
+      // hide sample card
+      document
+        .getElementById("sample-med-card")
+        .setAttribute("style", "display: none");
+      // show personnel info
+      document
+        .getElementById("med-details")
+        .setAttribute("style", "display: block");
+      // update card
+      document.getElementById("med-name-side").innerHTML = myObj["med_name"];
+      document.getElementById("med-id-side").innerHTML = "ID: " + myObj["id"];
+      document.getElementById("med-price-side").innerHTML =
+        "Price: " + myObj["price"];
+      document.getElementById("med-exp-side").innerHTML =
+        "Expiry date: " + myObj["exp_date"];
+      document.getElementById("med-effect-side").innerHTML =
+        "Effect: " + effectString;
+    });
+    
+  };
+</script>
+<script
+  type="text/javascript"
+  charset="utf8"
+  src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"
+></script>
+<script
+  type="text/javascript"
+  charset="utf8"
+  src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.js"
+></script>
+{% endblock javascripts %}
