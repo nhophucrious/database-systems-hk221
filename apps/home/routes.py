@@ -10,7 +10,15 @@ from apps.home.models import (
     PatientComorbidity, 
     PatientPhone,
     TestingInformation,
-    TestConductor
+    TestConductor,
+    PatientSymptom,
+    PatientAdmissionDate,
+    PatientDischargeDate,
+    PatientAddress,
+    PatientPrevLocation,
+    Treats,
+    TreatmentPeriod,
+    Doctor
 )
 from sqlalchemy import func
 from flask import render_template, request
@@ -40,6 +48,24 @@ def unpackMedication(joinedQuery):
     _, effects = joinedQuery
     separator = ", "
     return separator.join(effects.split(","))
+
+def serializeSymptom(joinedQuery):
+    _, symptomDate, symptomName = joinedQuery
+    separator = ", "
+    return{
+        'symptomDate': symptomDate if symptomDate is None else symptomDate.strftime('%Y-%m-%d'),
+        'symptomName': symptomName if symptomName is None else separator.join(symptomName.split(","))
+    }
+
+def serializeTreatment(joinedQuery):
+    treatmentBegin, treatmentEnd, docFirstName, docLastName, treatMed, treatResult = joinedQuery
+    return {
+        'treatmentPeriod': str(treatmentBegin) + ' to ' + str(treatmentEnd),
+        'docFullName': docFirstName + ' ' + docLastName,
+        'treatmentMedication': treatMed,
+        'treatResult': treatResult
+    }
+
 
 
 @blueprint.route('/index')
@@ -206,15 +232,41 @@ def detailedPatientData():
         
         patientPhoneQuery = db.session.query(Patient, func.group_concat(PatientPhone.phone_no)).join(PatientPhone, PatientPhone.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
         patientComorbidityQuery = db.session.query(Patient, func.group_concat(PatientComorbidity.comorbidity)).join(PatientComorbidity, PatientComorbidity.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
+        patientSymptomQuery = db.session.query(Patient, PatientSymptom.s_date, func.group_concat(PatientSymptom.symptom)).join(PatientSymptom, PatientSymptom.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(PatientSymptom.s_date)
+        patientAdmissionDateQuery = db.session.query(Patient, func.group_concat(PatientAdmissionDate.a_date)).join(PatientAdmissionDate, PatientAdmissionDate.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
+        patientDischargeDateQuery = db.session.query(Patient, func.group_concat(PatientDischargeDate.d_date)).join(PatientDischargeDate, PatientDischargeDate.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
+        patientAddressQuery = db.session.query(Patient, func.group_concat(PatientAddress.p_address)).join(PatientAddress, PatientAddress.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
+        patientPrevLocationQuery = db.session.query(Patient, func.group_concat(PatientPrevLocation.prev_location)).join(PatientPrevLocation, PatientPrevLocation.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
         
+        treatmentQuery = db.session.query(TreatmentPeriod.begin_date, TreatmentPeriod.end_date, Personnel.first_name, Personnel.last_name, Medication.med_name, Treats.result
+        ).where(Treats.med_id==Medication.id).where(Treats.doctor_id==Doctor.id).where(Doctor.id==Personnel.id).where(Treats.patient_id ==request_data.decode()).group_by(Treats.patient_id)
+
+        print(treatmentQuery)
+        for treatment in treatmentQuery:
+            print(serializeTreatment(treatment))
+
         separator = ", "
 
         _, resultPhoneNum = patientPhoneQuery[0]
         _, resultComorbidity = patientComorbidityQuery[0]
+        _, resultAdmissionDate = patientAdmissionDateQuery[0]
+        _, resultDischargeDate = patientDischargeDateQuery[0]
+        _, resultAddress = patientAddressQuery[0]
+        _, resultPrevLocation = patientPrevLocationQuery[0]
+
         return {
-            #'effect': unpackMedication(query[0])
+            'treatmentData': [
+                serializeTreatment(treat) for treat in treatmentQuery
+            ],
+            'symptomData': [
+                serializeSymptom(sym) for sym in patientSymptomQuery
+            ],
             'patientPhone': separator.join(resultPhoneNum.split(",")),
-            'comorbidity': resultComorbidity if resultComorbidity is None else separator.join(resultComorbidity.split(","))
+            'comorbidity': resultComorbidity if resultComorbidity is None else separator.join(resultComorbidity.split(",")),
+            'admissionDates': separator.join(str(resultAdmissionDate).split(",")),
+            'dischargeDates': separator.join(str(resultDischargeDate).split(",")),
+            'address': separator.join(resultAddress.split(",")),
+            'prev_location': separator.join(resultPrevLocation.split(","))
         }
 
 @blueprint.route('api/patient_testing_data', methods=['POST', 'GET'])
@@ -222,8 +274,6 @@ def patientTestingData():
     request_data = request.get_data()
     testingInfoQuery = db.session.query(TestingInformation).where(TestingInformation.patient_id==request_data.decode()).group_by(TestingInformation.test_date)
     
-    for info in testingInfoQuery:
-        print(info.to_dict())
     total_filtered = testingInfoQuery.count()
     # pagination
     #start = request.args.get('start', type=int)

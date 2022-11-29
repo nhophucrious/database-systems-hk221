@@ -3,7 +3,87 @@
 {% block title %} Patient {% endblock title %}
 
 {% block content %}
-
+  <!-- The Modal -->
+  <div class="modal" id="myModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+      
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h2 class="modal-title">Patient's Report</h2>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+          <h3 id="modal-patient-name"></h3>
+          <p id="modal-gender"></p>
+          <p id="modal-natid"></p>
+          <p id="modal-comorbidity"></p>
+          <p id="modal-phone"></p>
+          <p id="modal-previous"></p>
+          <p id="modal-admission"></p>
+          <p id="modal-discharge"></p>
+          <hr>
+          <div class="col-12">
+            <h3>Patient's Symptoms by Date</h3>
+            <div class="table-responsive">
+              <table id="patient-modal-symptom-table" class="table align-items-center table-flush table-hover">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="sort" data-sort="name">Date</th>
+                    <th scope="col" class="sort" data-sort="budget">Symptom</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <hr>
+          <div class="col-12">
+            <h3>Patient's Testings by Date</h3>
+            <div class="table-responsive">
+              <table id="patient-modal-testing-table" class="table align-items-center table-flush table-hover">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="sort" data-sort="date">Test Date</th>
+                    <th scope="col" class="sort" data-sort="budget">Quick test</th>
+                    <th scope="col" class="sort" data-sort="status">PCR</th>
+                    <th scope="col" class="sort" data-sort="status">Respiratory Rate</th>
+                    <th scope="col" class="sort" data-sort="status">SPO2</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <hr>
+          <div class="col-12">
+            <h3>Patient's Treatments</h3>
+            <div class="table-responsive">
+              <table id="patient-modal-treatment-table" class="table align-items-center table-flush table-hover">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="sort" data-sort="date">Duration</th>
+                    <th scope="col" class="sort" data-sort="budget">Doctor</th>
+                    <th scope="col" class="sort" data-sort="status">Medication</th>
+                    <th scope="col" class="sort" data-sort="status">Result</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
   <div class="header bg-primary pb-6">
     <div class="container-fluid">
       <div class="header-body">
@@ -22,7 +102,6 @@
       </div>
     </div>
   </div>
-  
   <!-- Page content -->
   <div class="container-fluid mt--6">
     <div class="row">
@@ -69,7 +148,9 @@
             <h4 id="patient-national-id"></h4>
             <h4 id="patient-phone"></h4>
             <h4 id="patient-comorbidity" style="color: orange"></h4>
-            <input type="button" class="btn btn-primary" onclick="someFunc()" value="View Full Report">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+              View Full Report
+            </button>
           </div>
         </div>
         <div class="card" id="test-card">
@@ -155,20 +236,74 @@
       });
     });
     const updateSide = (myObj) => {
-      var phoneNumbers, comorbidity;
+      var phoneNumbers, comorbidity, admissionDate, dischargeDate, prevLoc;
       getAdditionalDetails(myObj["id"], "/api/patient_detailed_data").then(function (response) {
-        //console.log(response)
+        console.log(response)
         let myAdditionalInfo = JSON.parse(JSON.stringify(response))
         let phoneFromJSON = myAdditionalInfo["patientPhone"];
         let comorbidityFromJSON = myAdditionalInfo["comorbidity"]
-        //console.log(myAdditionalInfo)
+        let prevLocFromJSON = myAdditionalInfo["prev_location"]
+        let admissionDateFromJSON = myAdditionalInfo["admissionDates"]
+        let dischargeDateFromJSON = myAdditionalInfo["dischargeDates"]
+        console.log(myAdditionalInfo)
         phoneNumbers = phoneFromJSON;
         comorbidity = comorbidityFromJSON;
+        prevLoc = prevLocFromJSON;
+        admissionDate = admissionDateFromJSON;
+        dischargeDate = dischargeDateFromJSON;
         //console.log(phoneNumbers)
         // hide sample card
         document.getElementById('sample-patient-card').setAttribute("style", "display: none");
         // show personnel info
         document.getElementById('patient-details').setAttribute("style", "display: block")
+        // update modal for full report
+        document.getElementById('modal-patient-name').innerHTML = "Full name:" + "&nbsp"+ myObj["first_name"] + "&nbsp" + myObj["last_name"];
+        document.getElementById('modal-natid').innerHTML = "National ID:" + "&nbsp"+ myObj["id_number"];
+        document.getElementById('modal-phone').innerHTML ="Phone number(s):" + "&nbsp" + phoneNumbers;
+        document.getElementById('modal-previous').innerHTML = "Previous location(s):" + "&nbsp"+ prevLoc;
+        document.getElementById('modal-admission').innerHTML = "Admission date(s):" + "&nbsp" + admissionDate;
+        document.getElementById('modal-discharge').innerHTML = "Discharge date(s):" + "&nbsp" + dischargeDate;
+        // create symptom table in modal
+        if ($.fn.dataTable.isDataTable('#patient-modal-symptom-table')) {
+          $('#patient-modal-symptom-table').DataTable().destroy();
+        }
+        var patientSymptom = $("#patient-modal-symptom-table").DataTable({
+          data: myAdditionalInfo["symptomData"],
+          destroy: true,
+          searching: false,
+          sDom: 'lrtip',
+          paging: false,
+          info: false,
+          columns: [
+            { data: "symptomDate", orderable: false},
+            { data: "symptomName", orderable: false},
+          ],
+        });
+        // create treatment table in modal
+        if ($.fn.dataTable.isDataTable("#patient-modal-treatment-table")) {
+          $("#patient-modal-treatment-table").DataTable().destroy();
+        }
+        var patientTreatmentModal = $("#patient-modal-treatment-table").DataTable({
+          data: myAdditionalInfo["treatmentData"],
+          destroy: true,
+          searching: false,
+          sDom: 'lrtip',
+          paging: false,
+          info: false,
+          columns: [
+            { data: "treatmentPeriod", orderable: false},
+            { data: "docFullName", orderable: false},
+            { data: "treatmentMedication", orderable: false},
+            { data: "treatResult", orderable: false},   
+          ],
+          "order":[],
+          language:{
+            paginate:{
+              previous: "⬅️",
+              next: "➡️"
+            }
+          }
+        });
         // update card
         document.getElementById('patient-id').innerHTML = "Patient ID:" + "&nbsp" + myObj["id"];
         document.getElementById('patient-name').innerHTML = "Full name:" + "&nbsp"+ myObj["first_name"] + "&nbsp" + myObj["last_name"];
@@ -179,6 +314,7 @@
       getAdditionalDetails(myObj["id"], "api/patient_testing_data").then(function(response){
         console.log(response);
         let patientTestingInfo = JSON.parse(JSON.stringify(response));
+        // console.log(patientTestingInfo)
         if ($.fn.dataTable.isDataTable('#patient-testing-table')) {
           $('#patient-testing-table').DataTable().destroy();
         }
@@ -188,6 +324,31 @@
           searching: false,
           sDom: 'lrtip',
           paging: false,
+          columns: [
+            { data: "test_date", orderable: false, width: "5%" },
+            { data: "quicktest_res", orderable: false, width: "5%"},
+            { data: "pcr_res", orderable: false, width: "5%"},
+            { data: "respiratory_rate", orderable: false, width: "5%"},
+            { data: "spo2", orderable: false, width: "5%"},          
+          ],
+          "order":[],
+          language:{
+            paginate:{
+              previous: "⬅️",
+              next: "➡️"
+            }
+          }
+        });
+        if ($.fn.dataTable.isDataTable("#patient-modal-testing-table")) {
+          $("#patient-modal-testing-table").DataTable().destroy();
+        }
+        var patientTestingModal = $("#patient-modal-testing-table").DataTable({
+          data: patientTestingInfo["data"],
+          destroy: true,
+          searching: false,
+          sDom: 'lrtip',
+          paging: false,
+          info: false,
           columns: [
             { data: "test_date", orderable: false, width: "5%" },
             { data: "quicktest_res", orderable: false, width: "5%"},

@@ -16,6 +16,12 @@ class Personnel(db.Model):
             'gender': self.gender
         }
 
+
+class Doctor(db.Model):
+    __tablename__ = "doctor"
+    id = db.Column(db.String(6), primary_key=True)
+
+
 class PersonnelPhone(db.Model):
     __tablename__ = "personnel_phone"
     id = db.Column(db.String(6), primary_key=True)
@@ -52,6 +58,12 @@ class Patient(db.Model):
         }
 
 
+class PatientAddress(db.Model):
+    __tablename__ = 'patient_address'
+
+    patient_id = db.Column(db.String(6), primary_key=True)
+    p_address = db.Column(db.String(60), primary_key=True, nullable=False)
+
 
 class PatientPhone(db.Model):
     __tablename__ = "patient_phone"    
@@ -63,6 +75,36 @@ class PatientComorbidity(db.Model):
     __tablename__ = "patient_comorbidity"  
     patient_id = db.Column(db.String(6), primary_key=True)
     comorbidity = db.Column(db.String(30), primary_key=True, nullable=False)
+
+
+class PatientSymptom(db.Model):
+    __tablename__ = "patient_symptom"
+    patient_id = db.Column(db.String(6), primary_key=True)
+    s_date = db.Column(db.Date, primary_key=True, nullable=False)
+    symptom = db.Column(db.String(50), primary_key=True, nullable=False)
+
+
+class PatientPrevLocation(db.Model):
+    __tablename__ = 'patient_prev_location'
+
+    patient_id = db.Column(db.String(6), primary_key=True)
+    prev_location = db.Column(db.String(60), primary_key=True, nullable=False)
+
+
+class PatientAdmissionDate(db.Model):
+    __tablename__ = 'patient_admission_date'
+
+    patient_id = db.Column(db.String(6), primary_key=True)
+    a_date = db.Column(db.Date, primary_key=True, nullable=False)
+
+
+class PatientDischargeDate(db.Model):
+    __tablename__ = 'patient_discharge_date'
+    patient_id = db.Column(db.String(6), primary_key=True)
+    d_date = db.Column(db.Date, primary_key=True, nullable=False)
+
+
+
 
 class Medication(db.Model):
     __tablename__ = "medication"
@@ -116,5 +158,19 @@ class TestingInformation(db.Model):
         }
 
 
+class Treats(db.Model):
+    __tablename__ = 'treats'
+    patient_id = db.Column(db.ForeignKey('patient.id'), primary_key=True, nullable=False)
+    med_id = db.Column(db.ForeignKey('medication.id'), primary_key=True, nullable=False, index=True)
+    doctor_id = db.Column(db.ForeignKey('doctor.id'), primary_key=True, nullable=False, index=True)
+    result = db.Column(db.String(30))
 
 
+class TreatmentPeriod(db.Model):
+    __tablename__ = 'treatment_period'
+
+    patient_id = db.Column(db.String(6), primary_key=True, nullable=False)
+    med_id = db.Column(db.String(6), primary_key=True, nullable=False)
+    doctor_id = db.Column(db.String(6), primary_key=True, nullable=False)
+    begin_date = db.Column(db.Date, primary_key=True, nullable=False)
+    end_date = db.Column(db.Date, primary_key=True, nullable=False)
