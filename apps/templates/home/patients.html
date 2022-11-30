@@ -3,14 +3,81 @@
 {% block title %} Patient {% endblock title %}
 
 {% block content %}
-  <!-- The Modal -->
-  <div class="modal" id="myModal">
+  <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+  <!-- New Patient Modal-->
+  <div class="modal" id="newPatientModal">
     <div class="modal-dialog">
       <div class="modal-content">
-      
         <!-- Modal Header -->
         <div class="modal-header">
-          <h2 class="modal-title">Patient's Report</h2>
+          <h1 class="modal-title">Add a new patient</h1>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+          <p class="text-muted">(Currently supporting demographic information only)</p>
+          <form action="/api/patient_add" method="POST" target="dummyframe">
+            <div class="form-group">
+              <label for="modalFirstNameInput">First name</label>
+              <input type="text" class="form-control" id="modalFirstNameInput" placeholder="First name" name="firstName" required>
+            </div>
+            <div class="form-group">
+              <label for="modalLastNameInput">Last name</label>
+              <input type="text" class="form-control" id="modalLastNameInput" placeholder="Last name" name="lastName" required>
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" id="modalGenderInputMale" value="M">
+                <label class="form-check-label" for="inlineRadio1">Male</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" id="modalGenderInputFemale" value="F">
+                <label class="form-check-label" for="inlineRadio2">Female</label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="modalPhoneInput">Phone number</label>
+                  <input type="text" class="form-control" id="modalPhoneInput" onkeypress="return /[0-9]/i.test(event.key)" placeholder="Phone number" name="phoneNumber" minlength="10" maxlength="10" required>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="modalNationalIDInput">National ID</label>
+                  <input type="text" class="form-control" id="modalNationalIDInput" onkeypress="return /[0-9]/i.test(event.key)" placeholder="National ID" name="nationalID" minlength="9" maxlength="12" required>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="modalAddressInput">Address</label>
+              <input type="text" class="form-control" id="modalAddressInput" placeholder="Address" name="address" required>
+            </div>
+            <div class="form-group">
+              <label for="modalPrevLocationInput">Previous location</label>
+              <input type="text" class="form-control" id="modalPrevLocationInput" placeholder="Previous location" name="prevLocation" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  <!-- Patient Report Modal -->
+  <div class="modal" id="reportModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h1 class="modal-title">Patient's Report</h1>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         
@@ -21,6 +88,7 @@
           <p id="modal-natid"></p>
           <p id="modal-comorbidity"></p>
           <p id="modal-phone"></p>
+          <p id="modal-address"></p>
           <p id="modal-previous"></p>
           <p id="modal-admission"></p>
           <p id="modal-discharge"></p>
@@ -98,6 +166,11 @@
               </ol>
             </nav>
           </div>
+          <div class="col-lg-6 col-5 text-right">
+            <button type="button" class="btn btn-neutral" data-toggle="modal" data-target="#newPatientModal">
+              Add new patient
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -148,7 +221,7 @@
             <h4 id="patient-national-id"></h4>
             <h4 id="patient-phone"></h4>
             <h4 id="patient-comorbidity" style="color: orange"></h4>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#reportModal">
               View Full Report
             </button>
           </div>
@@ -236,19 +309,23 @@
       });
     });
     const updateSide = (myObj) => {
-      var phoneNumbers, comorbidity, admissionDate, dischargeDate, prevLoc;
+      var phoneNumbers, nationalID, comorbidity, address, admissionDate, dischargeDate, prevLoc;
       getAdditionalDetails(myObj["id"], "/api/patient_detailed_data").then(function (response) {
         console.log(response)
         let myAdditionalInfo = JSON.parse(JSON.stringify(response))
         let phoneFromJSON = myAdditionalInfo["patientPhone"];
+        let nationalIDFromJSON = myAdditionalInfo["id_number"]
         let comorbidityFromJSON = myAdditionalInfo["comorbidity"]
         let prevLocFromJSON = myAdditionalInfo["prev_location"]
         let admissionDateFromJSON = myAdditionalInfo["admissionDates"]
         let dischargeDateFromJSON = myAdditionalInfo["dischargeDates"]
+        let addressFromJSON = myAdditionalInfo["address"];
         console.log(myAdditionalInfo)
         phoneNumbers = phoneFromJSON;
+        nationalID = nationalIDFromJSON;
         comorbidity = comorbidityFromJSON;
         prevLoc = prevLocFromJSON;
+        address = addressFromJSON;
         admissionDate = admissionDateFromJSON;
         dischargeDate = dischargeDateFromJSON;
         //console.log(phoneNumbers)
@@ -260,6 +337,7 @@
         document.getElementById('modal-patient-name').innerHTML = "Full name:" + "&nbsp"+ myObj["first_name"] + "&nbsp" + myObj["last_name"];
         document.getElementById('modal-natid').innerHTML = "National ID:" + "&nbsp"+ myObj["id_number"];
         document.getElementById('modal-phone').innerHTML ="Phone number(s):" + "&nbsp" + phoneNumbers;
+        document.getElementById('modal-address').innerHTML = "Address:" + "&nbsp" + address;
         document.getElementById('modal-previous').innerHTML = "Previous location(s):" + "&nbsp"+ prevLoc;
         document.getElementById('modal-admission').innerHTML = "Admission date(s):" + "&nbsp" + admissionDate;
         document.getElementById('modal-discharge').innerHTML = "Discharge date(s):" + "&nbsp" + dischargeDate;
@@ -308,6 +386,7 @@
         document.getElementById('patient-id').innerHTML = "Patient ID:" + "&nbsp" + myObj["id"];
         document.getElementById('patient-name').innerHTML = "Full name:" + "&nbsp"+ myObj["first_name"] + "&nbsp" + myObj["last_name"];
         document.getElementById('patient-gender').innerHTML = "Gender:" + "&nbsp" + (myObj["gender"]=="F" ? "Female" : "Male");
+        document.getElementById('patient-national-id').innerHTML = "National ID:" + "&nbsp" + myObj["id_number"];
         document.getElementById('patient-phone').innerHTML = "Phone number(s):" + "&nbsp" + phoneNumbers;
         document.getElementById('patient-comorbidity').innerHTML = "Comorbidity:" + "&nbsp" + (comorbidity===null? "None" : comorbidity);
       });

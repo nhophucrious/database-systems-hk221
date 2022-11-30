@@ -44,6 +44,10 @@ class Patient(db.Model):
     administrator_id = db.Column(db.String(6))
     is_warning = db.Column(db.String(1))
     is_high_risk = db.Column(db.String(1))
+
+    def getID(self):
+        return self.id
+
     def to_dict(self):
         return {
             'id': self.id,
