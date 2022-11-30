@@ -22,7 +22,7 @@ from apps.home.models import (
     PatientAddress
 )
 from sqlalchemy import func
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 
@@ -294,6 +294,8 @@ def patientTestingData():
         'draw': request.args.get('draw', type=int),
     }
 
+
+
 @blueprint.route('api/patient_add', methods=['POST'])
 def patientAdd():
     if request.method == 'POST':
@@ -309,6 +311,19 @@ def patientAdd():
         address = request.form.get("address")
         prevLocation = request.form.get("prevLocation")
         print(newID, firstName, lastName, nationalID, gender, 'NUR001', 'STA001', 'F', 'F')
-    return {
-        'heh': 'hhhehe'
-    }
+        defaultCaretaker = 'NUR001'
+        defaultAdminister = 'STA001'
+        patientRecord = Patient(newID, firstName, lastName, nationalID, gender, defaultCaretaker, defaultAdminister, 'F', 'F')
+        patientPhoneRecord = PatientPhone(newID, phoneNumber)
+        patientAddressRecord = PatientAddress(newID, address)
+        patientPrevLocationRecord = PatientPrevLocation(newID, prevLocation)
+
+        db.session.add(patientRecord)
+        db.session.add(patientPhoneRecord)
+        db.session.add(patientAddressRecord)
+        db.session.add(patientPrevLocationRecord)
+        db.session.commit()
+        print("hehe")
+        return {
+            'hehe': 'hehe' # please excuse this
+        }

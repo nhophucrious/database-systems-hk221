@@ -17,7 +17,7 @@
         <!-- Modal body -->
         <div class="modal-body">
           <p class="text-muted">(Currently supporting demographic information only)</p>
-          <form action="/api/patient_add" method="POST" target="dummyframe">
+          <form id="newPatientForm" action="/api/patient_add" method="POST" target="dummyframe">
             <div class="form-group">
               <label for="modalFirstNameInput">First name</label>
               <input type="text" class="form-control" id="modalFirstNameInput" placeholder="First name" name="firstName" required>
@@ -59,13 +59,8 @@
               <label for="modalPrevLocationInput">Previous location</label>
               <input type="text" class="form-control" id="modalPrevLocationInput" placeholder="Previous location" name="prevLocation" required>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button onclick="mySubmitFunction()" class="btn btn-primary" data-dismiss="modal">Submit</button>
           </form>
-        </div>
-        
-        <!-- Modal footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
         </div>
         
       </div>
@@ -265,6 +260,10 @@
 <!-- Specific JS goes HERE --> 
 {% block javascripts %}
 <script>
+    function mySubmitFunction() {
+      document.getElementById("newPatientForm").submit();
+      document.getElementById("newPatientForm").reset();
+    }
     const someFunc = () => {
       console.log("jeje");
       document.getElementById('patient-testing-details').setAttribute("style", "display: block");

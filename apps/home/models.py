@@ -47,6 +47,17 @@ class Patient(db.Model):
 
     def getID(self):
         return self.id
+    
+    def __init__(self, id, firstName, lastName, nationalID, gender, caretaker, administer, isWarning, isHighRisk):
+        self.id = id
+        self.first_name = firstName
+        self.last_name = lastName
+        self.id_number = nationalID
+        self.gender = gender
+        self. caretaker_id = caretaker
+        self.administrator_id = administer
+        self.is_warning = isWarning
+        self.is_high_risk = isHighRisk
 
     def to_dict(self):
         return {
@@ -67,12 +78,18 @@ class PatientAddress(db.Model):
 
     patient_id = db.Column(db.String(6), primary_key=True)
     p_address = db.Column(db.String(60), primary_key=True, nullable=False)
+    def __init__(self, patient_id, p_address):
+        self.patient_id = patient_id
+        self.p_address = p_address
 
 
 class PatientPhone(db.Model):
     __tablename__ = "patient_phone"    
     patient_id = db.Column(db.String(6), primary_key=True)
     phone_no = db.Column(db.String(10), primary_key=True)
+    def __init__(self, patient_id, phone_no):
+        self.patient_id = patient_id
+        self.phone_no = phone_no
 
 
 class PatientComorbidity(db.Model):
@@ -93,6 +110,9 @@ class PatientPrevLocation(db.Model):
 
     patient_id = db.Column(db.String(6), primary_key=True)
     prev_location = db.Column(db.String(60), primary_key=True, nullable=False)
+    def __init__(self, patient_id, prev_location):
+        self.patient_id = patient_id
+        self.prev_location = prev_location
 
 
 class PatientAdmissionDate(db.Model):
