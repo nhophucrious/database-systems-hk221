@@ -50,9 +50,9 @@ $ (Windows) set FLASK_APP=run.py
 $ (Powershell) $env:FLASK_APP = ".\run.py"
 $
 $ # Set up the DEBUG environment
-$ # (Unix/Mac) export FLASK_ENV=development
-$ # (Windows) set FLASK_ENV=development
-$ # (Powershell) $env:FLASK_ENV = "development"
+$ (Unix/Mac) export FLASK_ENV=development
+$ (Windows) set FLASK_ENV=development
+$ (Powershell) $env:FLASK_ENV = "development"
 $
 $ # Start the application (development mode)
 $ # --host=0.0.0.0 - expose the app on all network interfaces (default 127.0.0.1)
@@ -76,6 +76,7 @@ Within the download you'll find the following directories and files:
    |    |
    |    |-- home/                          # A simple app that serve HTML files
    |    |    |-- routes.py                 # Define app routes
+   |    |    |-- models.py                 # Define models used in SQLALCHEMY
    |    |
    |    |-- authentication/                # Handles auth routes (login and register)
    |    |    |-- routes.py                 # Define authentication routes  
@@ -96,9 +97,9 @@ Within the download you'll find the following directories and files:
    |    |    |    |-- base-fullscreen.html  # Used by Authentication pages
    |    |    |    |-- base.html             # Used by common pages
    |    |    |
-   |    |    |-- accounts/                  # Authentication pages
+   |    |    |-- accounts/                  # Authentication pages 
    |    |    |    |-- login.html            # Login page
-   |    |    |    |-- register.html         # Register page
+   |    |    |    |-- register.html         # Register page (not used now)
    |    |    |
    |    |    |-- home/                      # UI Kit Pages
    |    |         |-- index.html            # Index page
@@ -108,9 +109,7 @@ Within the download you'll find the following directories and files:
    |  config.py                             # Set up the app
    |    __init__.py                         # Initialize the app
    |
-   |-- requirements.txt                     # Development modules - SQLite storage
-   |-- requirements-mysql.txt               # Production modules  - Mysql DMBS
-   |-- requirements-pqsql.txt               # Production modules  - PostgreSql DMBS
+   |-- requirements.txt                     # Development modules
    |
    |-- Dockerfile                           # Deployment
    |-- docker-compose.yml                   # Deployment
@@ -125,8 +124,3 @@ Within the download you'll find the following directories and files:
 ```
 
 <br />
-
-Run these command to get the app up and running
-$env:FLASK_APP = ".\run.py"
-$env:FLASK_ENV = "development"
-flask run

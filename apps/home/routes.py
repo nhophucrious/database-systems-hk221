@@ -242,7 +242,7 @@ def detailedMedicationData():
 def detailedPatientData():
     if request.method == 'POST':
         request_data = request.get_data()
-        
+
         patientPhoneQuery = db.session.query(Patient, func.group_concat(PatientPhone.phone_no)).join(PatientPhone, PatientPhone.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
         patientComorbidityQuery = db.session.query(Patient, func.group_concat(PatientComorbidity.comorbidity)).join(PatientComorbidity, PatientComorbidity.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(Patient.id)
         patientSymptomQuery = db.session.query(Patient, PatientSymptom.s_date, func.group_concat(PatientSymptom.symptom)).join(PatientSymptom, PatientSymptom.patient_id==Patient.id, isouter=True).where(Patient.id==request_data.decode()).group_by(PatientSymptom.s_date)
