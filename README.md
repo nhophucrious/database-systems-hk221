@@ -5,7 +5,7 @@ Features:
 
 - Up-to-date [dependencies](./requirements.txt): **Flask 2.0.1**
 - [SCSS compilation](#recompile-css) via **Gulp**
-- UI Kit: **Argon Dashboard** (many thanks to CreativeTim for the starting template)
+- UI Kit: **Argon Dashboard** (many thanks to CreativeTim for the starting template hehe)
 - MySQL database
 - Alembic (DB schema migrations)
 - Modular design with **Blueprints**
@@ -17,14 +17,7 @@ Features:
 ## Table of Contents
 
 * [Quick Start](#quick-start)
-* [Documentation](#documentation)
 * [File Structure](#file-structure)
-* [Browser Support](#browser-support)
-* [Resources](#resources)
-* [Reporting Issues](#reporting-issues)
-* [Technical Support or Questions](#technical-support-or-questions)
-* [Licensing](#licensing)
-* [Useful Links](#useful-links)
 
 <br />
 
