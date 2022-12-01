@@ -148,7 +148,7 @@ def personnelData():
             personnelSerializer(joinedQuery=joinedTuple) for joinedTuple in query
         ],
         'recordsFiltered': total_filtered,
-        'recordsTotal': query.count(),
+        'recordsTotal': db.session.query(Personnel).count(),
         'draw': request.args.get('draw', type=int),
     }
 
@@ -180,7 +180,7 @@ def patientData():
            pat.to_dict() for pat in query
         ],
         'recordsFiltered': total_filtered,
-        'recordsTotal': query.count(),
+        'recordsTotal': db.session.query(Patient).count(),
         'draw': request.args.get('draw', type=int),
     }
 
@@ -208,7 +208,7 @@ def medicationData():
            med.to_dict() for med in query
         ],
         'recordsFiltered': total_filtered,
-        'recordsTotal': query.count(),
+        'recordsTotal': db.session.query(Medication).count(),
         'draw': request.args.get('draw', type=int),
     }
 
