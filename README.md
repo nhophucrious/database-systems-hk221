@@ -117,3 +117,7 @@ Within the download you'll find the following directories and files:
 ```
 
 <br />
+Make sure that MySQL Server and MySQL Workbench are installed and configured to run on your machine.
+Please refer to the PDF report for instructions on how to set-up the account and connect.
+Make sure that MySQL is running on localhost, port 3306.
+The credentials to log in is **manager**/**averysecuredpassword**
